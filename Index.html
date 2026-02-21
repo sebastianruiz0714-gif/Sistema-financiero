@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Finanzas Pro Local</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<div class="container">
+
+<h1>💰 Créditos ESPINOZA</h1>
+
+<div class="card">
+<h3>Nuevo crédito</h3>
+
+<div class="grid">
+<input id="nombre" placeholder="Nombre completo">
+<input id="identidad" placeholder="Número identidad">
+<input id="telefono" placeholder="Contacto">
+<input id="monto" placeholder="Monto">
+<input id="interes" placeholder="% interés">
+<input id="cuotas" placeholder="Cuotas (max 6)">
+</div>
+
+<div class="radio">
+<label><input type="radio" name="frecuencia" value="quincenal" checked> Quincenal</label>
+<label><input type="radio" name="frecuencia" value="mensual"> Mensual</label>
+</div>
+
+<div class="total">Total: <span id="total">0</span></div>
+
+<button id="crear" class="btn">Crear crédito</button>
+</div>
+
+<div class="card">
+    <input type="text" id="buscador" placeholder="🔍 Buscar por nombre o identidad..." style="width: 100%; box-sizing: border-box;">
+</div>
+
+<h3>Lista de Créditos</h3>
+<div id="lista"></div>
+
+<h3>Lista</h3>
+<div id="lista"></div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

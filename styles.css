@@ -1,0 +1,68 @@
+:root {
+    --prim: #27ae60; --dark: #2c3e50; --danger: #e74c3c; 
+    --bg: #f0f2f5; --white: #ffffff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
+body { background: var(--bg); padding: 15px; display: flex; justify-content: center; }
+
+.container { width: 100%; max-width: 700px; }
+
+h1, h3 { color: var(--dark); margin: 20px 0 10px; text-align: center; }
+
+/* Tarjetas y Inputs */
+.card { 
+    background: var(--white); padding: 20px; border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; 
+}
+
+.grid { 
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+    gap: 12px; margin-bottom: 15px; 
+}
+
+input, select { 
+    width: 100%; padding: 12px; border: 1px solid #ddd; 
+    border-radius: 8px; outline: none; transition: 0.3s;
+}
+
+input:focus { border-color: var(--prim); box-shadow: 0 0 5px rgba(39, 174, 96, 0.2); }
+
+/* Botones */
+.btn { 
+    width: 100%; padding: 14px; background: var(--prim); color: #fff; 
+    border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+}
+
+/* Lista Responsive */
+.item-lista {
+    display: flex; flex-wrap: wrap; justify-content: space-between;
+    gap: 15px; border-left: 6px solid var(--prim);
+}
+
+.info { flex: 1; min-width: 200px; }
+.acciones-vertical { 
+    display: flex; flex-direction: column; gap: 8px; width: 100%; 
+}
+
+/* Tablets y PC */
+@media (min-width: 480px) {
+    .acciones-vertical { width: 120px; }
+}
+
+/* Estilos de Estado */
+.pagado { opacity: 0.6; border-left-color: #95a5a6; }
+.tag { font-size: 0.7em; background: #e8f5e9; color: var(--prim); padding: 4px 8px; border-radius: 5px; }
+.total-box { font-size: 1.2em; font-weight: bold; color: var(--prim); text-align: center; margin: 10px 0; }
+
+/* Hace que parezca una App nativa */
+body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+input {
+    user-select: auto; /* Permite escribir en los inputs */
+}

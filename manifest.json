@@ -1,0 +1,15 @@
+{
+  "short_name": "FinanzasPro",
+  "name": "Finanzas Pro Local",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2845/2845924.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#27ae60",
+  "background_color": "#f0f2f5"
+}
