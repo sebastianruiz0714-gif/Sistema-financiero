@@ -1,49 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Finanzas Pro Local</title>
-<link rel="stylesheet" href="styles.css">
-<link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanzas Pro Local</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
 <div class="container">
+    <h1>💰 Créditos JSC</h1>
 
-<h1>💰 Créditos ESPINOZA</h1>
+    <div class="grid">
+        <div class="card" style="border-bottom: 4px solid #2980b9;">
+            <small>💰 Capital Disponible</small>
+            <div id="caja-capital" style="font-size: 1.3em; font-weight: bold;">$ 0</div>
+            <button onclick="setCapital()" style="font-size: 0.7em; margin-top: 5px;">Configurar Fondo</button>
+        </div>
+        <div class="card" style="border-bottom: 4px solid #27ae60;">
+            <small>📈 Ganancias Generadas</small>
+            <div id="caja-ganancias" style="font-size: 1.3em; font-weight: bold; color: #27ae60;">$ 0</div>
+        </div>
+    </div>
 
-<div class="card">
-<h3>Nuevo crédito</h3>
+    <div class="card">
+        <h3>Nuevo crédito</h3>
+        <div class="grid">
+            <input id="nombre" placeholder="Nombre completo">
+            <input id="identidad" placeholder="Número identidad">
+            <input id="telefono" placeholder="Contacto (WhatsApp)">
+            <input type="number" id="monto" placeholder="Monto a prestar">
+            <input type="number" id="interes" placeholder="% interés">
+            <input id="cuotas" placeholder="Cuotas (ej: 6)">
+        </div>
 
-<div class="grid">
-<input id="nombre" placeholder="Nombre completo">
-<input id="identidad" placeholder="Número identidad">
-<input id="telefono" placeholder="Contacto">
-<input id="monto" placeholder="Monto">
-<input id="interes" placeholder="% interés">
-<input id="cuotas" placeholder="Cuotas (max 6)">
-</div>
+        <div class="radio">
+            <label><input type="radio" name="frecuencia" value="quincenal" checked> Quincenal</label>
+            <label><input type="radio" name="frecuencia" value="mensual"> Mensual</label>
+        </div>
 
-<div class="radio">
-<label><input type="radio" name="frecuencia" value="quincenal" checked> Quincenal</label>
-<label><input type="radio" name="frecuencia" value="mensual"> Mensual</label>
-</div>
+        <div class="total">Total a cobrar: <span id="total-preview">$ 0</span></div>
+        <button id="btn-crear" class="btn">Crear crédito</button>
+    </div>
 
-<div class="total">Total: <span id="total">0</span></div>
+    <div class="card" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="buscador" placeholder="🔍 Buscar por nombre o identidad..." style="flex: 2; min-width: 200px;">
+        <select id="filtro-estado" onchange="renderizar()" style="flex: 1; min-width: 150px;">
+            <option value="todos">Todos los créditos</option>
+            <option value="pendientes">Solo Pendientes</option>
+            <option value="pagados">Solo Pagados</option>
+        </select>
+    </div>
 
-<button id="crear" class="btn">Crear crédito</button>
-</div>
+    <div class="card" style="display: flex; gap: 10px;">
+        <button onclick="exportarDatos()" class="btn" style="background: #34495e; flex:1">📥 Descargar Respaldo</button>
+        <label for="importar" class="btn" style="background: #9b59b6; text-align: center; cursor: pointer; flex:1">
+            📤 Cargar Respaldo
+            <input type="file" id="importar" style="display: none;" onchange="importarDatos(event)">
+        </label>
+    </div>
 
-<div class="card">
-    <input type="text" id="buscador" placeholder="🔍 Buscar por nombre o identidad..." style="width: 100%; box-sizing: border-box;">
-</div>
-
-<h3>Lista de Créditos</h3>
-<div id="lista"></div>
-
-<h3>Lista</h3>
-<div id="lista"></div>
-
+    <h3>Lista de Créditos</h3>
+    <div id="lista-creditos"></div>
 </div>
 
 <script src="app.js"></script>
