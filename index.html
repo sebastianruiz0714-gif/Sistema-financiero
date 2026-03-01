@@ -10,61 +10,76 @@
 <body>
 
 <div class="container">
-    <h1>💰 Créditos JSC</h1>
+    <header>
+        <h1>💰 Créditos JSC</h1>
+    </header>
 
-    <div class="grid">
-        <div class="card" style="border-bottom: 4px solid #2980b9;">
+    <section class="grid grid-2">
+        <div class="card card-border-blue">
             <small>💰 Capital Disponible</small>
-            <div id="caja-capital" style="font-size: 1.3em; font-weight: bold;">$ 0</div>
-            <button onclick="setCapital()" style="font-size: 0.7em; margin-top: 5px;">Configurar Fondo</button>
+            <div id="caja-capital" class="caja-monto">$ 0</div>
+            <button onclick="setCapital()" class="btn-sm">Configurar Fondo</button>
         </div>
-        <div class="card" style="border-bottom: 4px solid #27ae60;">
+        <div class="card card-border-green">
             <small>📈 Ganancias Generadas</small>
-            <div id="caja-ganancias" style="font-size: 1.3em; font-weight: bold; color: #27ae60;">$ 0</div>
+            <div id="caja-ganancias" class="caja-monto text-green">$ 0</div>
         </div>
-    </div>
+    </section>
 
-    <div class="card">
+    <section class="card">
         <h3>Nuevo crédito</h3>
-        <div class="grid">
-            <input id="nombre" placeholder="Nombre completo">
-            <input id="identidad" placeholder="Número identidad">
-            <input id="telefono" placeholder="Contacto (WhatsApp)">
-            <input type="number" id="monto" placeholder="Monto a prestar">
-            <input type="number" id="interes" placeholder="% interés">
-            <input id="cuotas" placeholder="Cuotas (ej: 6)">
+        <div class="grid grid-3">
+            <input id="nombre" name="nombre" placeholder="Nombre completo" type="text">
+            <input id="identidad" name="identidad" placeholder="Número identidad" type="text">
+            <input id="telefono" name="telefono" placeholder="Contacto (WhatsApp)" type="text">
+            <input id="monto" name="monto" placeholder="Monto a prestar" type="number">
+            <input id="interes" name="interes" placeholder="% interés" type="number">
+            <input id="cuotas" name="cuotas" placeholder="Cuotas (ej: 6)" type="number">
         </div>
 
-        <div class="radio">
+        <div class="radio-group">
             <label><input type="radio" name="frecuencia" value="quincenal" checked> Quincenal</label>
             <label><input type="radio" name="frecuencia" value="mensual"> Mensual</label>
         </div>
 
-        <div class="total">Total a cobrar: <span id="total-preview">$ 0</span></div>
-        <button id="btn-crear" class="btn">Crear crédito</button>
-    </div>
+        <div class="total-display">Total a cobrar: <span id="total-preview">$ 0</span></div>
+        
+        <div class="date-group">
+            <label for="fecha-primer-pago">Fecha del primer pago:</label>
+            <input type="date" id="fecha-primer-pago" name="fecha-primer-pago">
+        </div>
 
-    <div class="card" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <input type="text" id="buscador" placeholder="🔍 Buscar por nombre o identidad..." style="flex: 2; min-width: 200px;">
-        <select id="filtro-estado" onchange="renderizar()" style="flex: 1; min-width: 150px;">
+        <button id="btn-crear" class="btn btn-primary">Crear crédito</button>
+    </section>
+
+    <section class="card flex-row">
+        <input type="text" id="buscador" name="buscador" placeholder="🔍 Buscar por nombre o identidad..." class="flex-grow">
+        <select id="filtro-estado" name="filtro-estado" onchange="renderizar()">
             <option value="todos">Todos los créditos</option>
             <option value="pendientes">Solo Pendientes</option>
             <option value="pagados">Solo Pagados</option>
         </select>
-    </div>
+    </section>
 
-    <div class="card" style="display: flex; gap: 10px;">
-        <button onclick="exportarDatos()" class="btn" style="background: #34495e; flex:1">📥 Descargar Respaldo</button>
-        <label for="importar" class="btn" style="background: #9b59b6; text-align: center; cursor: pointer; flex:1">
+    <section class="card flex-row">
+        <button onclick="exportarDatos()" class="btn btn-dark flex-grow">📥 Descargar Respaldo</button>
+        <label for="importar" class="btn btn-purple flex-grow text-center">
             📤 Cargar Respaldo
-            <input type="file" id="importar" style="display: none;" onchange="importarDatos(event)">
+            <input type="file" id="importar" name="importar" class="hidden" onchange="importarDatos(event)">
         </label>
-    </div>
+    </section>
 
-    <h3>Lista de Créditos</h3>
-    <div id="lista-creditos"></div>
+    <section>
+        <h3>Lista de Créditos</h3>
+        <div id="lista-creditos"></div>
+    </section>
 </div>
 
 <script src="app.js"></script>
 </body>
 </html>
+
+<script src="app.js"></script>
+</body>
+</html>
+
