@@ -1,17 +1,19 @@
 /**
- * FINANZAS PRO - JSC
- * Sistema de Gestión de Créditos con Capitalización y Cronogramas
+ * FINANZAS PRO - JSC 
+ * Versión 3.1: Fecha de primer pago personalizable + Cronograma exacto
+ * Lógica de negocio y manejo de interfaz.
  */
 
 const d = document;
 
-// --- ESTADO DE LA APLICACIÓN ---
+// --- ESTADO Y UTILIDADES ---
 let creditos = JSON.parse(localStorage.getItem('db_creditos')) || [];
 let config = JSON.parse(localStorage.getItem('db_config')) || { capitalDisponible: 0, gananciasTotales: 0 };
 
-// --- UTILIDADES (HELPERS) ---
 const fCOP = (v) => new Intl.NumberFormat('es-CO', { 
-    style: 'currency', currency: 'COP', minimumFractionDigits: 0 
+    style: 'currency', 
+    currency: 'COP', 
+    minimumFractionDigits: 0 
 }).format(v);
 
 const guardarEnStorage = () => {
@@ -20,50 +22,30 @@ const guardarEnStorage = () => {
     renderizar();
 };
 
-// --- LÓGICA DE CÁLCULO EN VIVO ---
-const calcularTotalEnvivo = () => {
-    const m = parseFloat(d.getElementById('monto').value) || 0;
-    const i = parseFloat(d.getElementById('interes').value) || 0;
-    const totalCalculado = m + (m * (i / 100));
-    
-    const display = d.getElementById('total-preview');
-    if (display) display.innerText = fCOP(totalCalculado);
-    return totalCalculado;
+const fmtFecha = (f) => {
+    if(!f) return "---";
+    const [y, m, d] = f.split('-');
+    return `${d}/${m}/${y}`;
 };
 
-// --- LÓGICA FINANCIERA DE FECHAS ---
-const calcularCronograma = (cuotas, frecuencia) => {
+// --- LÓGICA DE NEGOCIO ---
+const calcularCronograma = (cuotas, frecuencia, fechaInicio) => {
     const fechas = [];
-    for (let i = 1; i <= cuotas; i++) {
-        const fechaCuota = new Date();
+    let base = new Date(fechaInicio);
+    base.setMinutes(base.getMinutes() + base.getTimezoneOffset());
+
+    for (let i = 0; i < cuotas; i++) {
+        let proxima = new Date(base);
         if (frecuencia === "quincenal") {
-            fechaCuota.setDate(fechaCuota.getDate() + (i * 15));
+            proxima.setDate(base.getDate() + (i * 15));
         } else {
-            fechaCuota.setMonth(fechaCuota.getMonth() + i);
+            proxima.setMonth(base.getMonth() + i);
         }
-        fechas.push(fechaCuota.toLocaleDateString('es-CO'));
+        fechas.push(proxima.toISOString().split('T')[0]);
     }
     return fechas;
 };
 
-// --- ACCIONES DE CAJA ---
-const setCapital = () => {
-    const actual = config.capitalDisponible || 0;
-    const nuevo = parseFloat(prompt("Definir Capital Total:", actual));
-    if (!isNaN(nuevo)) {
-        config.capitalDisponible = nuevo;
-        guardarEnStorage();
-    }
-};
-
-const actualizarInterfazCaja = () => {
-    const capEl = d.getElementById('caja-capital');
-    const ganEl = d.getElementById('caja-ganancias');
-    if (capEl) capEl.innerText = fCOP(config.capitalDisponible);
-    if (ganEl) ganEl.innerText = fCOP(config.gananciasTotales);
-};
-
-// --- GESTIÓN DE CRÉDITOS ---
 const crearCredito = () => {
     const campos = {
         nombre: d.getElementById('nombre').value.trim(),
@@ -72,31 +54,36 @@ const crearCredito = () => {
         monto: parseFloat(d.getElementById('monto').value),
         interes: parseFloat(d.getElementById('interes').value) || 0,
         cuotas: parseInt(d.getElementById('cuotas').value) || 0,
-        frecuencia: d.querySelector('input[name="frecuencia"]:checked')?.value || "quincenal"
+        frecuencia: d.querySelector('input[name="frecuencia"]:checked')?.value || "quincenal",
+        fechaPrimerPago: d.getElementById('fecha-primer-pago').value
     };
 
-    if (!campos.nombre || !campos.identidad || isNaN(campos.monto) || campos.cuotas <= 0) {
-        return alert("⚠️ Datos incompletos o incorrectos.");
+    if (!campos.nombre || !campos.fechaPrimerPago || isNaN(campos.monto) || campos.cuotas <= 0) {
+        return alert("⚠️ Por favor, selecciona la fecha del primer pago y completa los datos.");
     }
-
+    
     if (creditos.some(c => c.identidad === campos.identidad && c.saldoTotal > 0)) {
-        return alert(`❌ El cliente CC ${campos.identidad} ya tiene un crédito activo.`);
+        return alert("❌ Este cliente ya tiene un crédito activo.");
     }
-
     if (campos.monto > config.capitalDisponible) {
-        return alert("❌ No hay capital suficiente en caja.");
+        return alert("❌ No hay capital suficiente disponible.");
     }
 
-    const cronograma = calcularCronograma(campos.cuotas, campos.frecuencia);
+    const cronograma = calcularCronograma(campos.cuotas, campos.frecuencia, campos.fechaPrimerPago);
+
+    const montoInteres = campos.monto * (campos.interes / 100);
+    const saldoTotal = campos.monto + montoInteres;
+    const valorCuota = saldoTotal / campos.cuotas; 
 
     const nuevoCredito = {
         id: Date.now(),
         ...campos,
         montoPrestado: campos.monto,
-        interesMonto: campos.monto * (campos.interes / 100),
-        saldoTotal: campos.monto * (1 + (campos.interes / 100)),
-        fechaInicio: new Date().toLocaleDateString('es-CO'),
-        proximoCobro: cronograma[0], // Sincronizado con Cuota 1
+        interesMonto: montoInteres,
+        saldoTotal: saldoTotal,
+        valorCuota: valorCuota,
+        fechaCreacion: new Date().toISOString().split('T')[0],
+        proximoCobro: cronograma[0],
         cronograma,
         historial: []
     };
@@ -104,150 +91,174 @@ const crearCredito = () => {
     config.capitalDisponible -= campos.monto;
     creditos.push(nuevoCredito);
     guardarEnStorage();
-    limpiarFormulario();
-    alert("✅ Crédito creado exitosamente.");
+    
+    d.querySelectorAll('input:not([type="radio"])').forEach(i => i.value = "");
+    d.getElementById('total-preview').innerText = "$ 0";
+};
+
+// --- GESTIÓN DE CRÉDITOS ---
+const actualizarFechaCuota = (id, index, nuevaFecha) => {
+    const c = creditos.find(i => i.id === id);
+    c.cronograma[index] = nuevaFecha;
+    
+    if (index === 0) c.proximoCobro = nuevaFecha;
+    guardarEnStorage();
 };
 
 const registrarAbono = (id) => {
     const c = creditos.find(i => i.id === id);
     const abono = parseFloat(prompt(`Saldo: ${fCOP(c.saldoTotal)}\n¿Monto del abono?`));
+    
+    if (!abono || abono <= 0 || abono > c.saldoTotal) return;
 
-    if (!abono || abono <= 0 || abono > c.saldoTotal) return alert("❌ Monto inválido.");
-
-    const ratioInteres = c.interesMonto / (c.montoPrestado + c.interesMonto);
-    const ganancia = abono * ratioInteres;
-    const recuperacionCapital = abono - ganancia;
+    const totalOriginal = c.montoPrestado + c.interesMonto;
+    const ratioAbono = abono / totalOriginal;
+    
+    const ganancia = c.interesMonto * ratioAbono;
+    const capitalRecuperado = abono - ganancia;
 
     config.gananciasTotales += ganancia;
-    config.capitalDisponible += recuperacionCapital;
+    config.capitalDisponible += capitalRecuperado;
     
     c.saldoTotal -= abono;
     c.historial.push({ fecha: new Date().toLocaleString(), monto: abono });
     
     if (c.saldoTotal > 0) {
-        c.proximoCobro = prompt("Confirmar próxima fecha de pago:", c.proximoCobro);
+        c.proximoCobro = prompt("Confirmar próxima fecha de cobro (YYYY-MM-DD):", c.proximoCobro);
     }
-
     guardarEnStorage();
 };
 
-// --- INTERFAZ Y RENDERIZADO ---
 const enviarWhatsApp = (id) => {
     const c = creditos.find(i => i.id === id);
-    const cronoTexto = (c.cronograma || []).map((f, i) => `Cuota ${i+1}: ${f}`).join('%0A');
     
-    const mensaje = `*RECIBO DE PAGO - JSC*%0A` +
-                    `--------------------------%0A` +
-                    `👤 *Cliente:* ${c.nombre}%0A` +
-                    `💰 *Saldo Total:* ${fCOP(c.saldoTotal)}%0A` +
-                    `📅 *Próximo Cobro:* ${c.proximoCobro}%0A` +
-                    `--------------------------%0A` +
-                    `*PLAN DE PAGOS:*%0A${cronoTexto}%0A` +
-                    `--------------------------%0A` +
-                    `¡Gracias por su puntualidad!`;
+    const plan = c.cronograma.map((f, i) => 
+        `📅 Cuota ${i+1} (${fmtFecha(f)}): ${fCOP(c.valorCuota)}`
+    ).join('\n');
     
-    window.open(`https://api.whatsapp.com/send?text=${mensaje}`);
+    const mensaje = 
+        `*💸 RECIBO DE CRÉDITO - JSC 💸*\n` +
+        `---------------------------\n` +
+        `👤 *Cliente:* ${c.nombre}\n` +
+        `💰 *Total a Pagar:* ${fCOP(c.saldoTotal)}\n` +
+        `🔢 *Cuotas:* ${c.cuotas}\n` +
+        `💵 *Valor Cuota:* ${fCOP(c.valorCuota)}\n` +
+        `📅 *Próximo Cobro:* ${fmtFecha(c.proximoCobro)}\n` +
+        `---------------------------\n` +
+        `*🗓️ PLAN DE PAGOS:*\n` +
+        `${plan}\n` +
+        `---------------------------\n` +
+        `¡Gracias por tu pago!`;
+
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`);
 };
 
+// --- RENDERIZADO DE INTERFAZ ---
 function renderizar() {
-    const contenedor = d.getElementById('lista-creditos');
-    if (!contenedor) return;
+    const lista = d.getElementById('lista-creditos');
+    const busq = d.getElementById('buscador').value.toLowerCase();
+    const hoy = new Date().toISOString().split('T')[0];
+    lista.innerHTML = '';
 
-    const busqueda = d.getElementById('buscador')?.value.toLowerCase() || "";
-    const filtro = d.getElementById('filtro-estado')?.value || "todos";
-    
-    contenedor.innerHTML = '';
-
-    const filtrados = creditos.filter(c => {
-        const matchesBusqueda = c.nombre.toLowerCase().includes(busqueda) || c.identidad.includes(busqueda);
-        const matchesFiltro = filtro === "todos" || 
-                             (filtro === "pendientes" && c.saldoTotal > 0) || 
-                             (filtro === "pagados" && c.saldoTotal <= 0);
-        return matchesBusqueda && matchesFiltro;
-    });
-
-    filtrados.forEach(c => {
+    creditos.filter(c => c.nombre.toLowerCase().includes(busq) || c.identidad.includes(busq))
+    .forEach(c => {
+        const esMora = c.saldoTotal > 0 && c.proximoCobro < hoy;
         const card = d.createElement('div');
-        card.className = `card ${c.saldoTotal <= 0 ? 'pagado' : ''}`;
+        
+        card.className = `card ${c.saldoTotal <= 0 ? 'pagado' : (esMora ? 'mora' : '')}`;
+        
         card.innerHTML = `
-            <div style="display:flex; justify-content:space-between">
+            <div class="card-header">
                 <strong>${c.nombre}</strong>
-                <span class="tag">${c.frecuencia || 'N/A'}</span>
+                ${esMora ? '<span class="tag-vencido">VENCIDO</span>' : ''}
             </div>
-            <p>ID: ${c.identidad}</p>
+            <p>ID: ${c.identidad} | Tel: ${c.telefono || 'N/A'}</p>
             <p class="saldo-destacado">SALDO: ${fCOP(c.saldoTotal)}</p>
-            <p>📅 Cobro: <b>${c.proximoCobro || 'Finalizado'}</b></p>
+            <p>📅 Cobro: <b>${fmtFecha(c.proximoCobro)}</b></p>
             
             <details>
-                <summary style="color:#2980b9; cursor:pointer">Ver Detalle</summary>
-                <div style="font-size:0.8em; padding:10px; background:#f9f9f9; border-radius:5px; margin-top:5px">
-                    <strong>Plan de Pagos:</strong><br>
-                    ${c.cronograma ? c.cronograma.join(' | ') : 'No disponible'}
+                <summary class="details-summary">Editar Cronograma / Historial</summary>
+                <div class="details-content">
+                    <strong>Calendario de Cuotas (Fijas):</strong><br>
+                    ${c.cronograma.map((f, i) => `
+                        <div class="date-input-row">
+                            <span>Cuota ${i+1}:</span>
+                            <input type="date" value="${f}" onchange="actualizarFechaCuota(${c.id}, ${i}, this.value)">
+                        </div>
+                    `).join('')}
                     <hr>
-                    <strong>Historial de Abonos:</strong>
-                    <ul>${(c.historial || []).map(h => `<li>${h.fecha}: ${fCOP(h.monto)}</li>`).join('')}</ul>
+                    <strong>Abonos realizados:</strong>
+                    <ul class="history-list">
+                        ${c.historial.map(h => `<li>${h.fecha} - ${fCOP(h.monto)}</li>`).join('')}
+                    </ul>
                 </div>
             </details>
 
-            <div style="margin-top:10px; display:flex; gap:5px">
-                <button onclick="registrarAbono(${c.id})" style="background:#27ae60; color:white; flex:1">Abono</button>
-                <button onclick="enviarWhatsApp(${c.id})" style="background:#25d366; color:white; flex:1">WhatsApp</button>
-                <button onclick="eliminarCredito(${c.id})" style="background:#e74c3c; color:white; width:40px">X</button>
+            <div class="card-actions">
+                <button onclick="registrarAbono(${c.id})" class="btn-primary">Abono</button>
+                <button onclick="enviarWhatsApp(${c.id})" class="btn-whatsapp">WhatsApp</button>
+                <button onclick="eliminarCredito(${c.id})" class="btn-danger">X</button>
             </div>
         `;
-        contenedor.appendChild(card);
+        lista.appendChild(card);
     });
-    actualizarInterfazCaja();
+
+    d.getElementById('caja-capital').innerText = fCOP(config.capitalDisponible);
+    d.getElementById('caja-ganancias').innerText = fCOP(config.gananciasTotales);
 }
 
+// --- ACCIONES DE DATOS Y EVENTOS ---
 const eliminarCredito = (id) => {
-    if (confirm("¿Seguro que desea eliminar este crédito?")) {
+    if(confirm("¿Eliminar registro?")) {
         creditos = creditos.filter(c => c.id !== id);
         guardarEnStorage();
     }
 };
 
-const limpiarFormulario = () => {
-    ['nombre', 'identidad', 'telefono', 'monto', 'interes', 'cuotas'].forEach(id => {
-        const el = d.getElementById(id);
-        if (el) el.value = '';
-    });
-    const tp = d.getElementById('total-preview');
-    if (tp) tp.innerText = '$ 0';
+const setCapital = () => {
+    const n = parseFloat(prompt("Definir Capital:", config.capitalDisponible));
+    if(!isNaN(n)){
+        config.capitalDisponible = n;
+        guardarEnStorage();
+    }
 };
 
-// --- INICIALIZACIÓN ---
-
-// Escuchar cambios para calcular total en vivo
-d.getElementById('monto')?.addEventListener('input', calcularTotalEnvivo);
-d.getElementById('interes')?.addEventListener('input', calcularTotalEnvivo);
-
-// Botón crear
-d.getElementById('btn-crear')?.addEventListener('click', crearCredito);
-
-// Buscador
-d.getElementById('buscador')?.addEventListener('input', renderizar);
-
-// Carga inicial
-renderizar();
-
-// --- FUNCIONES DE RESPALDO (Siguen ahí) ---
 const exportarDatos = () => {
-    const data = JSON.stringify({ creditos, config });
-    const blob = new Blob([data], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ creditos, config })], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = d.createElement('a');
     a.href = url;
-    a.download = `Respaldo_${new Date().toLocaleDateString()}.json`;
+    a.download = `Respaldo_JSC_${new Date().toLocaleDateString()}.json`;
     a.click();
 };
 
 const importarDatos = (e) => {
     const reader = new FileReader();
     reader.onload = (event) => {
-        const { creditos: c, config: cfg } = JSON.parse(event.target.result);
-        creditos = c; config = cfg;
+        const data = JSON.parse(event.target.result);
+        creditos = data.creditos;
+        config = data.config;
         guardarEnStorage();
     };
     reader.readAsText(e.target.files[0]);
 };
+
+// --- EVENTOS ---
+d.getElementById('btn-crear')?.addEventListener('click', crearCredito);
+
+const inputMonto = d.getElementById('monto');
+const inputInteres = d.getElementById('interes');
+
+const actualizarVistaTotal = () => {
+    const monto = parseFloat(inputMonto.value) || 0;
+    const interes = parseFloat(inputInteres.value) || 0;
+    const total = monto + (monto * (interes / 100));
+    d.getElementById('total-preview').innerText = fCOP(total);
+};
+
+inputMonto?.addEventListener('input', actualizarVistaTotal);
+inputInteres?.addEventListener('input', actualizarVistaTotal);
+
+d.getElementById('buscador')?.addEventListener('input', renderizar);
+
+renderizar();
