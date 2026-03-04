@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzas Pro Local</title>
+    <title>JSC Finanzas Pro</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -26,15 +26,30 @@
         </div>
     </section>
 
+    <section class="grid grid-3 stats-container">
+        <div class="card card-stats">
+            <small>💸 Dinero Prestado (En calle)</small>
+            <div id="stats-en-calle" class="monto-sm">$ 0</div>
+        </div>
+        <div class="card card-stats">
+            <small>⚠️ Clientes en Mora</small>
+            <div id="stats-mora" class="monto-sm text-red">0</div>
+        </div>
+        <div class="card card-stats">
+            <small>📅 Proyectado (7 días)</small>
+            <div id="stats-proyeccion" class="monto-sm text-blue">$ 0</div>
+        </div>
+    </section>
+
     <section class="card">
         <h3>Nuevo crédito</h3>
         <div class="grid grid-3">
-            <input id="nombre" name="nombre" placeholder="Nombre completo" type="text">
-            <input id="identidad" name="identidad" placeholder="Número identidad" type="text">
-            <input id="telefono" name="telefono" placeholder="Contacto (WhatsApp)" type="text">
-            <input id="monto" name="monto" placeholder="Monto a prestar" type="number">
-            <input id="interes" name="interes" placeholder="% interés" type="number">
-            <input id="cuotas" name="cuotas" placeholder="Cuotas (ej: 6)" type="number">
+            <input id="nombre" placeholder="Nombre completo" type="text">
+            <input id="identidad" placeholder="Número identidad" type="text">
+            <input id="telefono" placeholder="Contacto (WhatsApp)" type="text">
+            <input id="monto" placeholder="Monto a prestar" type="number">
+            <input id="interes" placeholder="% interés" type="number">
+            <input id="cuotas" placeholder="Cuotas" type="number">
         </div>
 
         <div class="radio-group">
@@ -42,19 +57,21 @@
             <label><input type="radio" name="frecuencia" value="mensual"> Mensual</label>
         </div>
 
-        <div class="total-display">Total a cobrar: <span id="total-preview">$ 0</span></div>
+        <div class="total-display">
+            Total a cobrar: <span id="total-preview">$ 0</span>
+        </div>
         
         <div class="date-group">
             <label for="fecha-primer-pago">Fecha del primer pago:</label>
-            <input type="date" id="fecha-primer-pago" name="fecha-primer-pago">
+            <input type="date" id="fecha-primer-pago">
         </div>
 
         <button id="btn-crear" class="btn btn-primary">Crear crédito</button>
     </section>
 
     <section class="card flex-row">
-        <input type="text" id="buscador" name="buscador" placeholder="🔍 Buscar por nombre o identidad..." class="flex-grow">
-        <select id="filtro-estado" name="filtro-estado" onchange="renderizar()">
+        <input type="text" id="buscador" placeholder="🔍 Buscar por nombre o identidad..." class="flex-grow">
+        <select id="filtro-estado" onchange="renderizar()">
             <option value="todos">Todos los créditos</option>
             <option value="pendientes">Solo Pendientes</option>
             <option value="pagados">Solo Pagados</option>
@@ -63,9 +80,9 @@
 
     <section class="card flex-row">
         <button onclick="exportarDatos()" class="btn btn-dark flex-grow">📥 Descargar Respaldo</button>
-        <label for="importar" class="btn btn-purple flex-grow text-center">
+        <label for="importar" class="btn btn-purple flex-grow text-center" style="cursor:pointer">
             📤 Cargar Respaldo
-            <input type="file" id="importar" name="importar" class="hidden" onchange="importarDatos(event)">
+            <input type="file" id="importar" class="hidden" onchange="importarDatos(event)">
         </label>
     </section>
 
@@ -73,13 +90,21 @@
         <h3>Lista de Créditos</h3>
         <div id="lista-creditos"></div>
     </section>
+
+    <section class="card help-section">
+        <details>
+            <summary>❓ Guía de Ayuda y Seguridad</summary>
+            <div class="help-content">
+                <p><strong>Seguridad:</strong> Los datos se guardan solo en este dispositivo. Use <b>Descargar Respaldo</b> frecuentemente.</p>
+                <p><strong>Mora:</strong> Los créditos en rojo indican que la fecha de cobro ya pasó.</p>
+                <p><strong>PWA:</strong> Instale esta app desde el menú de su navegador para usarla sin internet.</p>
+            </div>
+        </details>
+    </section>
 </div>
 
 <script src="app.js"></script>
 </body>
 </html>
 
-<script src="app.js"></script>
-</body>
-</html>
 
